@@ -1,0 +1,8 @@
+OUTPUT_DIR: data/
+
+crawler:
+  CATEGORIES: ['cs.CV', 'cs.CL']
+
+reader:
+  LLM_MODEL: "gpt4o"
+  RELEVANCE_THRESHOLD: 7
