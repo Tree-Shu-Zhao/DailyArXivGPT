@@ -3,12 +3,11 @@ import os
 from datetime import datetime
 
 import yaml
+from feedgen.feed import FeedGenerator
 from flask import Flask, Response
 from loguru import logger
-from feedgen.feed import FeedGenerator
 
 from src.workflow import Workflow
-from flask import request
 
 log_file = f"logs/{datetime.now().strftime('%Y-%m-%d')}.log"
 logger.add(log_file, rotation="1 day", mode="a")
@@ -74,19 +73,10 @@ def create_rss_feed(papers):
 def fetch():
     cfg = read_config(os.path.join("configs", "config.yaml"))
 
-    # Get parameters from request, with default values
-    relevance_threshold = int(request.args.get('relevance_threshold', cfg.get('relevance_threshold', 7)))
-    llm_model = request.args.get('llm_model', cfg.get('llm_model', 'gpt-4o'))
-    
-    # Update config with new parameters
-    cfg_copy = cfg.copy()
-    cfg["reader"]["llm_model"] = llm_model
-    cfg["reader"]["relevance_threshold"] = relevance_threshold
-
-    logger.info(f"\n{json.dumps(cfg_copy, indent=4)}")
+    logger.info(f"\n{json.dumps(cfg, indent=4)}")
     
     # Run the workflow to process papers
-    workflow = Workflow(cfg_copy)
+    workflow = Workflow(cfg)
     papers =  workflow.run()
 
     # Create an RSS feed
