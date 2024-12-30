@@ -1,3 +1,5 @@
+import hashlib
+import json
 import os
 
 from openai import OpenAI
@@ -7,29 +9,36 @@ from .prompt import RELEVANCE_SCORE_PROMPT
 
 
 class PaperReader:
-    def __init__(self, llm_model="gpt-4o", relevance_threshold=7):
+    def __init__(self, llm_model="gpt-4o", relevance_threshold=7, output_dir="data"):
         self.openai_client = OpenAI(
             api_key=os.environ.get("OPENAI_API_KEY"),
         )
         self.llm_model = llm_model
         self.threshold = relevance_threshold
+        self.output_dir = os.path.join(output_dir, "processed")
+        os.makedirs(self.output_dir, exist_ok=True)
 
     def run(self, papers):
-        relevant_papers = []
         for paper in papers:
-            # Preprocess, remove some unnecessary content, like blank, html tags, etc.
-            paper.title = self._remove_last_bracket_content(paper.title).strip()
-            paper.description = self._replace_new_line_with_space(self._remove_p_tag(paper.description)).strip()
+            # Skip if the paper already be processed
+            paper_id = self.create_paper_id(paper.to_dict())
+            filepath = os.path.join(self.output_dir, f"{paper_id}.json")
+            if os.path.exists(filepath):
+                continue
+
+            paper.title = paper.title.strip()
+            paper.description = paper.description.split("Abstract:")[1].strip()
 
             # Rate the relevance of the paper
-            relevance_output = self._rate_relevance(paper.title, paper.description)
+            relevance_output = self.rate_relevance(paper.title, paper.description)
             paper.relevance_score = relevance_output.score
             paper.relevance_reasons = relevance_output.reasons
-            if relevance_output.score >= self.threshold:
-                relevant_papers.append(paper)
-        return relevant_papers
+
+            # Save the paper to the output directory
+            with open(filepath, "w") as f:
+                json.dump(paper.to_dict(), f, indent=2)
     
-    def _rate_relevance(self, title, abstract):
+    def rate_relevance(self, title, abstract):
         chat_completion = self.openai_client.beta.chat.completions.parse(
             messages=[
                 { "role": "system", "content": RELEVANCE_SCORE_PROMPT},
@@ -40,14 +49,24 @@ class PaperReader:
         )
         return chat_completion.choices[0].message.parsed
 
-    def _remove_last_bracket_content(self, text):
-        return text[:text.rindex('(')]
-    
-    def _remove_p_tag(self, text):
-        return text.replace("<p>", "").replace("</p>", "")
-    
-    def _replace_new_line_with_space(self, text):
-        return text.replace("\n", " ")
+    def create_paper_id(self, paper_metadata):
+        """
+        Creates a unique, deterministic identifier for a paper based on its metadata.
+        
+        Args:
+            paper_metadata: Dictionary containing paper metadata like title, authors, doi, etc.
+            
+        Returns:
+            A unique string identifier for the paper
+        """
+        # Sort the metadata to ensure deterministic hashing
+        sorted_metadata = json.dumps(paper_metadata, sort_keys=True)
+        
+        # Create SHA-256 hash
+        paper_hash = hashlib.sha256(sorted_metadata.encode()).hexdigest()
+        
+        # Take first 12 characters for a shorter but still unique ID
+        return paper_hash[:12]
 
 
 class RelevanceOutput(BaseModel):

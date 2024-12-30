@@ -1,8 +1,8 @@
-OUTPUT_DIR: data/
+output_dir: data/
 
 crawler:
-  CATEGORIES: ['cs.CV', 'cs.CL']
+  categories: ['cs.CV', 'cs.CL']
 
 reader:
-  LLM_MODEL: "gpt4o"
-  RELEVANCE_THRESHOLD: 7
+  llm_model: "gpt-4o-mini"
+  relevance_threshold: 7

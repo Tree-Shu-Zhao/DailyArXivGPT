@@ -1,5 +1,3 @@
-import json
-import os
 import sys
 from datetime import datetime
 
@@ -19,13 +17,17 @@ class ArXivCrawler:
     
     def run(self):
         papers = []
+        titles = set()
         for rss_url in self.rss_urls:
             # Fetch feed 
             feed = self.fetch(rss_url)
             if feed is None:
                 return None
-
-            papers.extend([Paper(item.title, item.link, item.description) for item in feed.entries])
+            
+            for item in feed.entries:
+                if item.title not in titles:
+                    papers.append(Paper(item.title, item.link, item.description))
+                    titles.add(item.title)
         return papers
     
     def get_date(self, rss_url="http://export.arxiv.org/rss/cs.CV"):

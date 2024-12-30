@@ -3,4 +3,3 @@ feedparser
 loguru
 requests
 openai
-hydra-core
