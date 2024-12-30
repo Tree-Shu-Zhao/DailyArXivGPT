@@ -2,7 +2,6 @@ import json
 import os
 import shutil
 
-from flask import jsonify
 from loguru import logger
 
 from .crawler import ArXivCrawler
@@ -14,7 +13,12 @@ class Workflow:
     def __init__(self, cfg):
         self.output_dir = cfg["output_dir"]
         self.crawler = ArXivCrawler(cfg["crawler"]["categories"])
-        self.reader = PaperReader(cfg["reader"]["llm_model"], cfg["reader"]["relevance_threshold"], self.output_dir)
+        self.reader = PaperReader(
+            system_prompt=cfg["system_prompt"],
+            llm_model=cfg["reader"]["llm_model"], 
+            relevance_threshold=cfg["reader"]["relevance_threshold"], 
+            output_dir=self.output_dir,
+        )
 
     def run(self):
         os.makedirs(self.output_dir, exist_ok=True)
@@ -28,7 +32,7 @@ class Workflow:
             papers = self.crawler.run()
             if papers is None:
                 logger.error("Failed to fetch data from ArXiv.")
-                return jsonify({'error': 'Something wrong during parsing!'}), 400
+                return None
             logger.info(f"Crawling done! Save the data to {filepath}. #Paper: {len(papers)}")
             with open(filepath, "w") as f:
                 json.dump([paper.to_dict() for paper in papers], f, indent=2)
@@ -64,7 +68,6 @@ class Workflow:
 
             if len(relevant_papers) == 0:
                 logger.info("No relevant papers found.")
-                # return jsonify({'error': 'No relevant papers found.'}), 400
 
             # Sort the papers by relevance score
             relevant_papers.sort(key=lambda x: x.relevance_score, reverse=True)
@@ -81,4 +84,4 @@ class Workflow:
             relevant_papers = [Paper.from_dict(relevant_paper) for relevant_paper in data]
             logger.info(f"Loaded {len(relevant_papers)} relevant papers.")
         
-        return jsonify({'papers': [relevant_paper.to_dict() for relevant_paper in relevant_papers]}), 200
+        return [relevant_paper.to_dict() for relevant_paper in relevant_papers]

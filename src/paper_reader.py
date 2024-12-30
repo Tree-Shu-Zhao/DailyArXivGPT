@@ -5,14 +5,13 @@ import os
 from openai import OpenAI
 from pydantic import BaseModel
 
-from .prompt import RELEVANCE_SCORE_PROMPT
-
 
 class PaperReader:
-    def __init__(self, llm_model="gpt-4o", relevance_threshold=7, output_dir="data"):
+    def __init__(self, system_prompt, llm_model="gpt-4o",relevance_threshold=7, output_dir="data"):
         self.openai_client = OpenAI(
             api_key=os.environ.get("OPENAI_API_KEY"),
         )
+        self.system_prompt = system_prompt
         self.llm_model = llm_model
         self.threshold = relevance_threshold
         self.output_dir = os.path.join(output_dir, "processed")
@@ -27,10 +26,10 @@ class PaperReader:
                 continue
 
             paper.title = paper.title.strip()
-            paper.description = paper.description.split("Abstract:")[1].strip()
+            paper.abstract = paper.abstract.split("Abstract:")[1].strip()
 
             # Rate the relevance of the paper
-            relevance_output = self.rate_relevance(paper.title, paper.description)
+            relevance_output = self.rate_relevance(paper.title, paper.abstract)
             paper.relevance_score = relevance_output.score
             paper.relevance_reasons = relevance_output.reasons
 
@@ -41,7 +40,7 @@ class PaperReader:
     def rate_relevance(self, title, abstract):
         chat_completion = self.openai_client.beta.chat.completions.parse(
             messages=[
-                { "role": "system", "content": RELEVANCE_SCORE_PROMPT},
+                { "role": "system", "content": self.system_prompt},
                 { "role": "user", "content": f"Title: {title}\nAbstract: {abstract}"}
             ],
             model=self.llm_model,
