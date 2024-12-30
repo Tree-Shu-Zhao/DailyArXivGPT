@@ -2,12 +2,16 @@ import json
 import os
 from datetime import datetime
 
+import pytz
 import yaml
 from feedgen.feed import FeedGenerator
 from flask import Flask, Response
 from loguru import logger
 
 from src.workflow import Workflow
+
+# Set timezone
+tz_info = pytz.timezone(os.environ.get("TZ", "America/New_York"))
 
 log_file = f"logs/{datetime.now().strftime('%Y-%m-%d')}.log"
 logger.add(log_file, rotation="1 day", mode="a")
@@ -54,8 +58,8 @@ def create_rss_feed(papers):
             fe.description(f"Relevance Score: {paper['relevance_score']}\nReasons: {paper['relevance_reasons']}\n\n{paper['abstract']}")
             
             # If no publication date is available, use current time
-            fe.published(datetime.now())
-            
+            fe.published(datetime.now(tz_info))
+
             # Generate unique ID for each entry (you might want to adjust this)
             fe.id(str(hash(paper['title'])))
     
