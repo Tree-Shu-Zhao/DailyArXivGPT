@@ -3,3 +3,4 @@ feedparser
 loguru
 requests
 openai
+yaml
