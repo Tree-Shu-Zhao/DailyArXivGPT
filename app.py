@@ -52,16 +52,18 @@ def create_rss_feed(papers):
     
     try:
         # Add each paper as a feed entry
-        for paper in papers:
+        current_time = datetime.now(tz_info)
+        for i, paper in enumerate(papers):
             fe = fg.add_entry()
             fe.title(paper['title'])
-            fe.description(f"Relevance Score: {paper['relevance_score']}\nReasons: {paper['relevance_reasons']}\n\n{paper['abstract']}")
+            fe.description(f"Relevance Score: {paper['relevance_score']}<br>Reasons: {paper['relevance_reasons']}<br><br>{paper['abstract']}")
             
             # If no publication date is available, use current time
-            fe.published(datetime.now(tz_info))
+            entry_time = current_time.timestamp() + i
+            fe.published(datetime.fromtimestamp(entry_time, tz_info))
 
             # Generate unique ID for each entry (you might want to adjust this)
-            fe.id(str(hash(paper['title'])))
+            fe.id(paper['link'])
     
     except Exception as e:
         # Handle errors gracefully

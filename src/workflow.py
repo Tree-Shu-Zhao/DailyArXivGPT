@@ -69,8 +69,6 @@ class Workflow:
             if len(relevant_papers) == 0:
                 logger.info("No relevant papers found.")
 
-            # Sort the papers by relevance score
-            relevant_papers.sort(key=lambda x: x.relevance_score, reverse=True)
             with open(relevant_filepath, "w") as f:
                 json.dump([relevant_paper.to_dict() for relevant_paper in relevant_papers], f, indent=2)
 
@@ -82,6 +80,8 @@ class Workflow:
         with open(relevant_filepath, "r") as f:
             data = json.load(f)
             relevant_papers = [Paper.from_dict(relevant_paper) for relevant_paper in data]
+            # Sort relevant papers by relevance score
+            relevant_papers.sort(key=lambda x: x.relevance_score, reverse=True)
             logger.info(f"Loaded {len(relevant_papers)} relevant papers.")
         
         return [relevant_paper.to_dict() for relevant_paper in relevant_papers]
