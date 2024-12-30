@@ -56,7 +56,10 @@ def create_rss_feed(papers):
         for i, paper in enumerate(papers):
             fe = fg.add_entry()
             fe.title(paper['title'])
-            fe.description(f"Relevance Score: {paper['relevance_score']}<br>Reasons: {paper['relevance_reasons']}<br><br>{paper['abstract']}")
+            fe.title(f"[{paper['relevance_score']}]{paper['title']}")
+            fe.description(f"""{paper['abstract']}
+
+Reasons: {paper['relevance_reasons']}""")
             
             # If no publication date is available, use current time
             entry_time = current_time.timestamp() + i
