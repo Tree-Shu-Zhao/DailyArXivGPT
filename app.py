@@ -7,6 +7,7 @@ from flask import Flask
 from loguru import logger
 
 from src.workflow import Workflow
+from flask import request
 
 log_file = f"logs/{datetime.now().strftime('%Y-%m-%d')}.log"
 logger.add(log_file, rotation="1 day", mode="a")
@@ -35,12 +36,23 @@ def read_config(config_path):
         logger.error(f"Unexpected error reading configuration: {e}")
     return None
 
-cfg = read_config(os.path.join("configs", "config.yaml"))
-logger.info(f"\n{json.dumps(cfg, indent=4)}")
 
 @app.route('/fetch', methods=['GET'])
 def fetch():
-    workflow = Workflow(cfg)
+    cfg = read_config(os.path.join("configs", "config.yaml"))
+
+    # Get parameters from request, with default values
+    relevance_threshold = int(request.args.get('relevance_threshold', cfg.get('relevance_threshold', 7)))
+    llm_model = request.args.get('llm_model', cfg.get('llm_model', 'gpt-4o'))
+    
+    # Update config with new parameters
+    cfg_copy = cfg.copy()
+    cfg_copy['relevance_threshold'] = relevance_threshold
+    cfg_copy['llm_model'] = llm_model
+
+    logger.info(f"\n{json.dumps(cfg, indent=4)}")
+    
+    workflow = Workflow(cfg_copy)
     return workflow.run()
 
 if __name__ == "__main__":

@@ -81,4 +81,4 @@ class Workflow:
         shutil.rmtree(processed_paper_dir)
         logger.info("Removed the processed paper directory.")
         
-        return jsonify({'papers': relevant_papers})
+        return jsonify({'papers': [relevant_paper.to_dict() for relevant_paper in relevant_papers]}), 200

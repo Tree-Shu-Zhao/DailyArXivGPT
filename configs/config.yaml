@@ -4,5 +4,5 @@ crawler:
   categories: ['cs.CV', 'cs.CL']
 
 reader:
-  llm_model: "gpt-4o-mini"
+  llm_model: "gpt-4o"
   relevance_threshold: 7
