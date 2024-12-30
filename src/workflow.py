@@ -70,15 +70,15 @@ class Workflow:
             relevant_papers.sort(key=lambda x: x.relevance_score, reverse=True)
             with open(relevant_filepath, "w") as f:
                 json.dump([relevant_paper.to_dict() for relevant_paper in relevant_papers], f, indent=2)
+
+            # Remove the processed paper dir
+            shutil.rmtree(processed_paper_dir)
+            logger.info("Removed the processed paper directory.")
         else:
             logger.info(f"Found relevant data file {relevant_filepath}! Load it.")
         with open(relevant_filepath, "r") as f:
             data = json.load(f)
             relevant_papers = [Paper.from_dict(relevant_paper) for relevant_paper in data]
             logger.info(f"Loaded {len(relevant_papers)} relevant papers.")
-        
-        # Remove the processed paper dir
-        shutil.rmtree(processed_paper_dir)
-        logger.info("Removed the processed paper directory.")
         
         return jsonify({'papers': [relevant_paper.to_dict() for relevant_paper in relevant_papers]}), 200
