@@ -50,7 +50,7 @@ def fetch():
     cfg_copy['relevance_threshold'] = relevance_threshold
     cfg_copy['llm_model'] = llm_model
 
-    logger.info(f"\n{json.dumps(cfg, indent=4)}")
+    logger.info(f"\n{json.dumps(cfg_copy, indent=4)}")
     
     workflow = Workflow(cfg_copy)
     return workflow.run()
