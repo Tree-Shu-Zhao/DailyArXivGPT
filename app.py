@@ -47,8 +47,8 @@ def fetch():
     
     # Update config with new parameters
     cfg_copy = cfg.copy()
-    cfg_copy['relevance_threshold'] = relevance_threshold
-    cfg_copy['llm_model'] = llm_model
+    cfg["reader"]["llm_model"] = llm_model
+    cfg["reader"]["relevance_threshold"] = relevance_threshold
 
     logger.info(f"\n{json.dumps(cfg_copy, indent=4)}")
     
