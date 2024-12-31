@@ -13,9 +13,6 @@ from src.workflow import Workflow
 # Set timezone
 tz_info = pytz.timezone(os.environ.get("TZ", "America/New_York"))
 
-log_file = f"logs/{datetime.now().strftime('%Y-%m-%d')}.log"
-logger.add(log_file, rotation="1 day", mode="a")
-
 app = Flask(__name__)
 
 def read_config(config_path):
@@ -93,4 +90,7 @@ def fetch():
     return Response(rss_feed, mimetype='application/rss+xml')
 
 if __name__ == "__main__":
+    log_file = f"logs/{datetime.now().strftime('%Y-%m-%d')}.log"
+    logger.add(log_file, rotation="1 day", mode="a")
+
     app.run(host="0.0.0.0", port=33678)

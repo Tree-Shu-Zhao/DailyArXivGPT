@@ -26,7 +26,7 @@ class ArXivCrawler:
             
             for item in feed.entries:
                 if item.title not in titles:
-                    papers.append(Paper(item.title, item.link, item.abstract))
+                    papers.append(Paper(item.title, item.link, item.description))
                     titles.add(item.title)
         return papers
     
