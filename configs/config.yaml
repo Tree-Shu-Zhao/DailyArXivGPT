@@ -13,11 +13,13 @@ Example:
 1. {\"Score\": \"an integer score out of 10\", \"Reasons\": \"1-2 sentence short reasonings\"}
 
 Here are some requirements:
-1. When rating, consider if the paper directly mentions my research interests. Do not give a high score if the paper only can potentially be related to my research interests.
+1. If a paper directly mentions my research interests, give a high score, like 9 or 10. Do not give a high score if the paper only can potentially be related to my research interests.
 2. Do not care about specific application, such as medical, finance, remote sensing, etc.
+3. Do not care about languages other than English, e.g. Chinese, Bengali, etc.
 
-My research interests are: 
+My research interests include: 
 
-1. Retrieval-Augmented Generation (RAG), expecially focuses on Multimodal RAG.
-2. Multimodal Retrieval.
-3. Long-Context."
+1. Retrieval-Augmented Generation (RAG)
+2. Multimodal Retrieval
+3. Long-Context
+4. KV Cache"
