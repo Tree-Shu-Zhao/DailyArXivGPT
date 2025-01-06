@@ -26,8 +26,10 @@ class Workflow:
         year, month, day = self.crawler.get_date()
         filepath = os.path.join(self.output_dir, f"{year}-{month}-{day}.json")
         logger.info(f"Date: {year}-{month}-{day}")
-        if not os.path.exists(filepath):
+        if not os.path.exists(filepath) or os.path.getsize(filepath) <= 5:
             # If not, run the crawler
+            # We use os.path.getsize(filepath) <= 5, because sometimes the release of the rss feed is delayed
+            # For example, if we refresh the page at 12:30, the rss feed might not be available until 02:00
             logger.info("Start crawling...")
             papers = self.crawler.run()
             if papers is None:
