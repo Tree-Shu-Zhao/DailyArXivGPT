@@ -32,9 +32,9 @@ class Workflow:
             # For example, if we refresh the page at 12:30, the rss feed might not be available until 02:00
             logger.info("Start crawling...")
             papers = self.crawler.run()
-            if papers is None:
+            if papers is None or len(papers) == 0:
                 logger.error("Failed to fetch data from ArXiv.")
-                return None
+                return []
             logger.info(f"Crawling done! Save the data to {filepath}. #Paper: {len(papers)}")
             with open(filepath, "w") as f:
                 json.dump([paper.to_dict() for paper in papers], f, indent=2)
