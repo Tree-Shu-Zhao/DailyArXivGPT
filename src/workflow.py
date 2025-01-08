@@ -3,6 +3,7 @@ import os
 import shutil
 
 from loguru import logger
+from datetime import datetime
 
 from .crawler import ArXivCrawler
 from .paper import Paper
@@ -26,6 +27,16 @@ class Workflow:
         year, month, day = self.crawler.get_date()
         filepath = os.path.join(self.output_dir, f"{year}-{month}-{day}.json")
         logger.info(f"Date: {year}-{month}-{day}")
+
+        # arXiv rss is weird, sometimes the content of the feed is not updated but the date is updated
+        current_date = datetime.now()
+        sys_year = current_date.year
+        sys_month = current_date.month
+        sys_day = current_date.day
+        if sys_year != year or sys_month != month or sys_day != day:
+            logger.error("The date of feed is not equal to the system date.")
+            return []
+
         if not os.path.exists(filepath) or os.path.getsize(filepath) <= 5:
             # If not, run the crawler
             # We use os.path.getsize(filepath) <= 5, because sometimes the release of the rss feed is delayed
