@@ -1,13 +1,14 @@
 import hashlib
 import json
 import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from openai import OpenAI
 from pydantic import BaseModel
 
 
 class PaperReader:
-    def __init__(self, system_prompt, llm_model="gpt-4o",relevance_threshold=7, output_dir="data"):
+    def __init__(self, system_prompt, llm_model="gpt-4o", relevance_threshold=7, output_dir="data", num_threads=32):
         self.openai_client = OpenAI(
             api_key=os.environ.get("OPENAI_API_KEY"),
         )
@@ -15,27 +16,37 @@ class PaperReader:
         self.llm_model = llm_model
         self.threshold = relevance_threshold
         self.output_dir = os.path.join(output_dir, "processed")
+        self.num_threads = num_threads
         os.makedirs(self.output_dir, exist_ok=True)
 
     def run(self, papers):
-        for paper in papers:
-            # Skip if the paper already be processed
-            paper_id = self.create_paper_id(paper.to_dict())
-            filepath = os.path.join(self.output_dir, f"{paper_id}.json")
-            if os.path.exists(filepath):
-                continue
+        with ThreadPoolExecutor(max_workers=self.num_threads) as executor:
+            futures = {executor.submit(self._process_paper, paper): paper for paper in papers}
+            for future in as_completed(futures):
+                paper = futures[future]
+                try:
+                    future.result()
+                except Exception as e:
+                    print(f"Error processing paper '{paper.title}': {e}")
 
-            paper.title = paper.title.strip()
-            paper.abstract = paper.abstract.split("Abstract:")[1].strip()
+    def _process_paper(self, paper):
+        # Skip if the paper already be processed
+        paper_id = self.create_paper_id(paper.to_dict())
+        filepath = os.path.join(self.output_dir, f"{paper_id}.json")
+        if os.path.exists(filepath):
+            return
 
-            # Rate the relevance of the paper
-            relevance_output = self.rate_relevance(paper.title, paper.abstract)
-            paper.relevance_score = relevance_output.score
-            paper.relevance_reasons = relevance_output.reasons
+        paper.title = paper.title.strip()
+        paper.abstract = paper.abstract.split("Abstract:")[1].strip()
 
-            # Save the paper to the output directory
-            with open(filepath, "w") as f:
-                json.dump(paper.to_dict(), f, indent=2)
+        # Rate the relevance of the paper
+        relevance_output = self.rate_relevance(paper.title, paper.abstract)
+        paper.relevance_score = relevance_output.score
+        paper.relevance_reasons = relevance_output.reasons
+
+        # Save the paper to the output directory
+        with open(filepath, "w") as f:
+            json.dump(paper.to_dict(), f, indent=2)
     
     def rate_relevance(self, title, abstract):
         chat_completion = self.openai_client.beta.chat.completions.parse(

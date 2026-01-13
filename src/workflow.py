@@ -16,9 +16,10 @@ class Workflow:
         self.crawler = ArXivCrawler(cfg["crawler"]["categories"])
         self.reader = PaperReader(
             system_prompt=cfg["system_prompt"],
-            llm_model=cfg["reader"]["llm_model"], 
-            relevance_threshold=cfg["reader"]["relevance_threshold"], 
+            llm_model=cfg["reader"]["llm_model"],
+            relevance_threshold=cfg["reader"]["relevance_threshold"],
             output_dir=self.output_dir,
+            num_threads=cfg["reader"].get("num_threads", 32),
         )
 
     def run(self):
