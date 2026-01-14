@@ -207,7 +207,6 @@ class VoiceGenerator:
                         and msg.event == EventType.PodcastRoundResponse
                     ):
                         audio.extend(msg.payload)
-                        logger.debug(f"Audio received: {len(msg.payload)} bytes")
 
                     # Error message
                     elif msg.type == MsgType.Error:
@@ -224,7 +223,6 @@ class VoiceGenerator:
                             elif current_round == 9999:
                                 voice = "tail_music"
                             is_podcast_round_end = False
-                            logger.info(f"Round {current_round} started: {voice}")
 
                         # Round end
                         elif msg.event == EventType.PodcastRoundEnd:
@@ -236,9 +234,6 @@ class VoiceGenerator:
                             last_round_id = current_round
                             if audio:
                                 podcast_audio.extend(audio)
-                                logger.info(
-                                    f"Round {current_round} completed: {len(audio)} bytes"
-                                )
                                 audio.clear()
 
                         # Podcast end
