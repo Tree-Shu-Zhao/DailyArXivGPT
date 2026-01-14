@@ -4,7 +4,7 @@ crawler:
   categories: ['cs.CV', 'cs.CL']
 
 reader:
-  llm_model: "gpt-5"
+  llm_model: "gpt-5.2"
   relevance_threshold: 3
   num_threads: 64
 
