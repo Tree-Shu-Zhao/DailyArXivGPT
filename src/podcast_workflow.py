@@ -92,38 +92,20 @@ class PodcastWorkflow:
         # Create output directory
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
+        # Convert date format for filename: YYYY-MM-DD -> YYYY MM DD
+        audio_filename = date_str.replace("-", " ") + ".mp3"
+
         # Check cache
-        audio_path = self.output_dir / f"{date_str}.mp3"
-        script_path = self.output_dir / f"{date_str}.json"
+        audio_path = self.output_dir / audio_filename
 
-        if audio_path.exists() and script_path.exists():
+        if audio_path.exists():
             logger.info(f"Found cached podcast: {audio_path}")
-            try:
-                with open(script_path, encoding="utf-8") as f:
-                    script = json.load(f)
-                return {
-                    "date": date_str,
-                    "script": script,
-                    "audio_path": str(audio_path),
-                    "cached": True,
-                }
-            except Exception as e:
-                logger.warning(f"Failed to load cached script: {e}")
-
-        # Check for script-only cache (no TTS)
-        if script_path.exists() and not self.voice_generator:
-            logger.info(f"Found cached script (no TTS): {script_path}")
-            try:
-                with open(script_path, encoding="utf-8") as f:
-                    script = json.load(f)
-                return {
-                    "date": date_str,
-                    "script": script,
-                    "audio_path": None,
-                    "cached": True,
-                }
-            except Exception as e:
-                logger.warning(f"Failed to load cached script: {e}")
+            return {
+                "date": date_str,
+                "script": None,
+                "audio_path": str(audio_path),
+                "cached": True,
+            }
 
         # Fetch papers
         logger.info("Fetching relevant papers...")
@@ -163,11 +145,6 @@ class PodcastWorkflow:
         # Generate script
         logger.info("Generating podcast script...")
         script = self.podcast_generator.generate(formatted_papers, news)
-
-        # Save script
-        with open(script_path, "w", encoding="utf-8") as f:
-            json.dump(script, f, ensure_ascii=False, indent=2)
-        logger.info(f"Script saved: {script_path}")
 
         result = {
             "date": date_str,
