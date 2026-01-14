@@ -14,12 +14,21 @@ class Workflow:
     def __init__(self, cfg):
         self.output_dir = cfg["output_dir"]
         self.crawler = ArXivCrawler(cfg["crawler"]["categories"])
+
+        # Substitute research_interests placeholder in prompts
+        research_interests = cfg.get("research_interests", "")
+        system_prompt = cfg["system_prompt"].replace("{research_interests}", research_interests)
+        key_contributions_prompt = cfg.get("key_contributions_prompt", "")
+        if key_contributions_prompt:
+            key_contributions_prompt = key_contributions_prompt.replace("{research_interests}", research_interests)
+
         self.reader = PaperReader(
-            system_prompt=cfg["system_prompt"],
+            system_prompt=system_prompt,
             llm_model=cfg["reader"]["llm_model"],
             relevance_threshold=cfg["reader"]["relevance_threshold"],
             output_dir=self.output_dir,
             num_threads=cfg["reader"].get("num_threads", 32),
+            key_contributions_prompt=key_contributions_prompt,
         )
 
     def run(self):

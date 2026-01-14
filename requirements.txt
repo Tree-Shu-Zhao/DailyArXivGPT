@@ -6,3 +6,4 @@ openai
 pyyaml
 feedgen
 pytz
+beautifulsoup4

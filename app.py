@@ -56,7 +56,8 @@ def create_rss_feed(papers):
             fe.title(f"[{paper['relevance_score']}]{paper['title']}")
             fe.description(f"""{paper['abstract']}
 
-Reasons: {paper['relevance_reasons']}""")
+===SUMMARY===
+{paper['key_contributions']}""")
             
             # If no publication date is available, use current time
             entry_time = current_time.timestamp() + i
