@@ -27,7 +27,6 @@ Guidelines:
 - For news: HOST introduces the headline, GUEST rephrases the provided summary conversationally
 - Keep transitions brief and natural
 - End with a short wrap-up (1-2 exchanges)
-- CRITICAL: Each segment's text field MUST be 300 characters or less. Break longer speaking turns into multiple segments with the same speaker if needed.
 
 CRITICAL OUTPUT FORMAT:
 You MUST output valid JSON with this exact structure (no other text):
@@ -158,13 +157,11 @@ class PodcastGenerator:
         script = self._parse_json_response(content)
 
         logger.info(f"Generated {len(script.get('segments', []))} segments")
-        self._validate_segment_lengths(script, "generation")
 
         # Translate to Chinese if requested (for TTS)
         if self.translate:
             logger.info("Translating script to Chinese...")
             script = self._translate_to_chinese(script)
-            self._validate_segment_lengths(script, "translation")
 
         return script
 
@@ -191,41 +188,6 @@ class PodcastGenerator:
             logger.error(f"Response content: {content[:500]}...")
             raise
 
-    def _validate_segment_lengths(self, script: dict, stage: str) -> None:
-        """Validate that all segments are within the 300-character limit.
-
-        Args:
-            script: Podcast script dict with segments
-            stage: Stage name for logging (e.g., "generation", "translation")
-
-        Raises:
-            ValueError: If any segment exceeds 300 characters
-        """
-        MAX_CHAR_LENGTH = 300
-        violations = []
-
-        for idx, segment in enumerate(script.get("segments", [])):
-            text = segment.get("text", "")
-            text_len = len(text)
-            if text_len > MAX_CHAR_LENGTH:
-                violations.append(
-                    f"Segment {idx} ({segment.get('speaker', 'unknown')}): "
-                    f"{text_len} chars (exceeds {MAX_CHAR_LENGTH})"
-                )
-
-        if violations:
-            error_msg = (
-                f"Segment length validation failed after {stage}:\n"
-                + "\n".join(violations)
-            )
-            logger.error(error_msg)
-            raise ValueError(error_msg)
-
-        logger.debug(
-            f"All {len(script.get('segments', []))} segments are within "
-            f"{MAX_CHAR_LENGTH} character limit"
-        )
-
     def _translate_to_chinese(self, script: dict) -> dict:
         """Translate podcast script segments to Chinese."""
         segments_text = json.dumps(script["segments"], ensure_ascii=False, indent=2)
@@ -239,8 +201,6 @@ class PodcastGenerator:
                         "Translate the following podcast script segments to Chinese. "
                         "Maintain the same JSON structure with 'speaker' and 'text' fields. "
                         "Keep speaker names as 'host' and 'guest' (do not translate these). "
-                        "CRITICAL: Each translated text field MUST be 300 characters or less. "
-                        "If a translation would exceed 300 characters, split it into multiple segments with the same speaker. "
                         'Return valid JSON only with the structure: {"segments": [...]}'
                     ),
                 },
