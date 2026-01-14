@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 RUN git clone https://github.com/Tree-Shu-Zhao/DailyArXivGPT.git .
 RUN pip install --no-cache-dir -r requirements.txt
+
 EXPOSE 33678
 ENV FLASK_ENV=production
 CMD ["flask", "run", "--host=0.0.0.0", "--port=33678"]

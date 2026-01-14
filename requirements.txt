@@ -7,3 +7,4 @@ pyyaml
 feedgen
 pytz
 beautifulsoup4
+websockets

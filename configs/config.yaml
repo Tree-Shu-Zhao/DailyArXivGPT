@@ -12,11 +12,15 @@ research_interests: |
   1. Agentic Reinforcement Learning
      - Multi-turn RL
      - Tool use learning, function calling
-     - Multi-agent reinforcement learning
 
   2. Deep Search / Research agents
      - Agent planning, reasoning, and execution strategies
      - Multi-step problem solving with search
+
+  3. Agent Environment
+     - Building and scaling agent training environments
+     - Simulation environments for agent learning
+     - Scalable infrastructure for agent training
 
 system_prompt: |
   You are a paper relevance classifier. Analyze the provided paper's title and abstract, then assign a relevance score based on the research interests below.
@@ -38,13 +42,13 @@ system_prompt: |
 
   SCORING GUIDELINES:
   Score 3 if ANY of these conditions are met:
-  - Introduces novel multi-turn RL methods or algorithms for sequential decision-making
+  - Introduces novel multi-turn RL methods for sequential decision-making
   - Develops techniques for tool use learning, function calling, or API interaction via RL
   - Advances multi-agent reinforcement learning (coordination, communication, competition)
-  - Presents deep search/reasoning systems (MCTS, o1-style reasoning, tree search)
-  - Proposes new agent planning, reasoning, or execution strategies
+  - Presents deep search/research agents
   - Develops multi-step problem solving with search or iterative refinement
-  - Introduces novel RL algorithms specifically for LLM agents or autonomous systems
+  - Proposes methods for building or scaling agent training environments
+  - Advances simulation environments or benchmarks for agent learning
 
   Score 2 if:
   - Uses RL/search techniques as a component but not the main contribution
@@ -81,3 +85,35 @@ key_contributions_prompt: |
   - Do not summarize the abstract verbatim—interpret and reframe it.
   - Use plain, confident language. Avoid hedging phrases like "this paper seems to" or "it appears that."
   - If a paper's contribution is incremental or narrow, say so. The director values honest assessment over hype.
+
+# News configuration
+news:
+  url_template: "https://tldr.tech/ai/{date}"
+
+# Podcast configuration
+podcast:
+  name: "AI Daily Digest"
+  target_duration_minutes: 10
+  translate_to_chinese: true
+  output_dir: "/app/podcasts"
+
+# OpenAI settings for podcast generation (reuses reader.llm_model if not specified)
+openai:
+  model: "gpt-5.2"
+  max_tokens: 8000
+  temperature: 0.7
+
+# Volcengine TTS configuration (optional - podcast works without it)
+# Credentials can also be set via VOLCENGINE_APP_ID and VOLCENGINE_ACCESS_KEY env vars
+volcengine:
+  app_id: ""
+  access_key: ""
+  resource_id: "volc.service_type.10050"
+  speakers:
+    host: "zh_male_dayixiansheng_v2_saturn_bigtts"
+    guest: "zh_female_mizaitongxue_v2_saturn_bigtts"
+  audio_format: "mp3"
+  sample_rate: 24000
+  speech_rate: 0
+  use_head_music: false
+  use_tail_music: false

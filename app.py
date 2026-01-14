@@ -5,10 +5,11 @@ from datetime import datetime
 import pytz
 import yaml
 from feedgen.feed import FeedGenerator
-from flask import Flask, Response
+from flask import Flask, Response, request, send_file, jsonify
 from loguru import logger
 
 from src.workflow import Workflow
+from src.podcast_workflow import PodcastWorkflow
 
 # Set timezone
 tz_info = pytz.timezone(os.environ.get("TZ", "America/New_York"))
@@ -81,7 +82,7 @@ def fetch():
     cfg = read_config(os.path.join("configs", "config.yaml"))
 
     logger.info(f"\n{json.dumps(cfg, indent=4)}")
-    
+
     # Run the workflow to process papers
     workflow = Workflow(cfg)
     papers =  workflow.run()
@@ -89,6 +90,55 @@ def fetch():
     # Create an RSS feed
     rss_feed = create_rss_feed(papers)
     return Response(rss_feed, mimetype='application/rss+xml')
+
+
+@app.route('/podcast', methods=['GET'])
+def podcast():
+    """Generate or serve today's podcast.
+
+    Query params:
+        date: Optional date (YYYY-MM-DD), defaults to today
+        format: 'audio' (default) or 'json' (script only)
+
+    Returns:
+        - If format=audio and audio exists: Audio file (audio/mpeg)
+        - If format=json: JSON with script and metadata
+        - If TTS not configured: JSON with script and error message
+    """
+    cfg = read_config(os.path.join("configs", "config.yaml"))
+
+    date_param = request.args.get('date')
+    output_format = request.args.get('format', 'audio')
+
+    try:
+        workflow = PodcastWorkflow(cfg)
+        result = workflow.run(date_param)
+
+        if output_format == 'json':
+            return jsonify(result)
+
+        # Return audio if available
+        if result.get('audio_path') and os.path.exists(result['audio_path']):
+            return send_file(
+                result['audio_path'],
+                mimetype='audio/mpeg',
+                as_attachment=True,
+                download_name=f"podcast-{result['date']}.mp3"
+            )
+
+        # No audio - return JSON with explanation
+        return jsonify({
+            **result,
+            "message": "Audio not generated - TTS credentials not configured"
+        }), 200  # Still 200 since script was generated
+
+    except ValueError as e:
+        logger.error(f"Podcast generation failed: {e}")
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        logger.error(f"Podcast generation failed: {e}")
+        return jsonify({"error": "Podcast generation failed"}), 500
+
 
 if __name__ == "__main__":
     log_file = f"logs/{datetime.now().strftime('%Y-%m-%d')}.log"
