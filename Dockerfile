@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-RUN git clone https://github.com/Tree-Shu-Zhao/DailyArXivGPT.git .
+RUN git clone https://github.com/Tree-Shu-Zhao/daily-ai-digest.git .
 RUN pip install --no-cache-dir -r requirements.txt
 
 EXPOSE 33678

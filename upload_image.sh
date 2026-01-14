@@ -1,3 +1,3 @@
-docker build --no-cache -t arxivgpt .
-docker tag arxivgpt treepsu/arxivgpt:v01.13.2026
-docker push treepsu/arxivgpt:v01.13.2026
+docker build --no-cache -t daily-ai-digest .
+docker tag daily-ai-digest treepsu/daily-ai-digest:v01.14.2026
+docker push treepsu/daily-ai-digest:v01.14.2026
