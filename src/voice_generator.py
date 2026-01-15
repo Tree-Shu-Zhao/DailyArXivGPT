@@ -14,6 +14,13 @@ try:
 except ImportError:
     websockets = None
 
+try:
+    from mutagen.id3 import ID3, TIT2, TALB, TPE1, TDRC
+    from mutagen.mp3 import MP3
+except ImportError:
+    ID3 = None
+    logger.warning("mutagen not installed - MP3 metadata will not be added")
+
 from .volcengine_protocols import (
     EventType,
     MsgType,
@@ -80,12 +87,20 @@ class VoiceGenerator:
         self.use_head_music = use_head_music
         self.use_tail_music = use_tail_music
 
-    def generate(self, script: dict, output_path: Path) -> Path:
+    def generate(
+        self,
+        script: dict,
+        output_path: Path,
+        title: str = None,
+        album: str = "daily-ai-digest",
+    ) -> Path:
         """Generate audio from podcast script.
 
         Args:
             script: Dict with 'segments' list containing speaker/text pairs
             output_path: Path to save the audio file
+            title: Track title for metadata (defaults to filename without extension)
+            album: Album name for metadata (defaults to "daily-ai-digest")
 
         Returns:
             Path to the generated audio file
@@ -101,7 +116,14 @@ class VoiceGenerator:
         logger.info(f"Generating audio for {len(nlp_texts)} segments...")
 
         # Run async audio generation
-        return asyncio.run(self._generate_audio(nlp_texts, output_path))
+        result_path = asyncio.run(self._generate_audio(nlp_texts, output_path))
+
+        # Add metadata to MP3 file
+        if title is None:
+            title = result_path.stem  # Use filename without extension as title
+        self._add_metadata(result_path, title, album)
+
+        return result_path
 
     def _convert_script(self, script: dict) -> list[dict]:
         """Convert podcast script segments to volcengine nlp_texts format."""
@@ -116,6 +138,38 @@ class VoiceGenerator:
                 }
             )
         return nlp_texts
+
+    def _add_metadata(self, audio_path: Path, title: str, album: str) -> None:
+        """Add ID3 metadata tags to MP3 file.
+
+        Args:
+            audio_path: Path to the MP3 file
+            title: Track title
+            album: Album name
+        """
+        if ID3 is None:
+            logger.warning("mutagen not available - skipping metadata")
+            return
+
+        try:
+            # Load or create ID3 tags
+            try:
+                audio = MP3(audio_path, ID3=ID3)
+                audio.add_tags()
+            except Exception:
+                # Tags might already exist
+                audio = MP3(audio_path, ID3=ID3)
+
+            # Add title and album
+            audio.tags.add(TIT2(encoding=3, text=title))
+            audio.tags.add(TALB(encoding=3, text=album))
+
+            # Save tags
+            audio.save()
+            logger.info(f"Added metadata - Title: {title}, Album: {album}")
+
+        except Exception as e:
+            logger.warning(f"Failed to add metadata: {e}")
 
     async def _generate_audio(self, nlp_texts: list[dict], output_path: Path) -> Path:
         """Generate audio using volcengine podcast TTS API."""

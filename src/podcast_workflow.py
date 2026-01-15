@@ -92,8 +92,8 @@ class PodcastWorkflow:
         # Create output directory
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
-        # Convert date format for filename: YYYY-MM-DD -> YYYY MM DD
-        audio_filename = date_str.replace("-", " ") + ".mp3"
+        # Use date as filename: YYYY-MM-DD.mp3
+        audio_filename = date_str + ".mp3"
 
         # Check cache
         audio_path = self.output_dir / audio_filename

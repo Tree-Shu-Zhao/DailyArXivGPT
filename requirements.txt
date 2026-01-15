@@ -8,3 +8,4 @@ feedgen
 pytz
 beautifulsoup4
 websockets
+mutagen
