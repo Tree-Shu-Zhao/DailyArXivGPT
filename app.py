@@ -119,14 +119,10 @@ def podcast():
 
         # Return audio if available
         if result.get('audio_path') and os.path.exists(result['audio_path']):
-            # Format date for download name: YYYY-MM-DD -> YYYY MM DD
-            download_date = result['date'].replace("-", " ")
-            return send_file(
-                result['audio_path'],
-                mimetype='audio/mpeg',
-                as_attachment=True,
-                download_name=f"{download_date}.mp3"
-            )
+            return jsonify({
+                **result,
+                "message": "Audio generated successfully"
+            }), 200
 
         # No audio - return JSON with explanation
         return jsonify({
